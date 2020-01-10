@@ -5,7 +5,7 @@ const validationHandler = require('../utils/middleware/validationHandler');
 
 const { movieIdSchema } = require('../utils/schemas/movies');
 const { userIdSchema } = require('../utils/schemas/users');
-const { userMovieIdSchema } = require('../utils/schemas/userMovies');
+const { createUserMovieSchema } = require('../utils/schemas/userMovies');
 
 const userMoviesApi = app => {
   const router = express.Router();
@@ -30,4 +30,48 @@ const userMoviesApi = app => {
       }
     }
   );
+
+  router.post(
+    '/',
+    validationHandler(createUserMovieSchema),
+    async (req, res, next) => {
+      const { body: userMovie } = req; // Recibiremos el id y el id de la pelicula que quiere agregar a la pelicula
+
+      try {
+        const createdUserMovieId = await userMoviesService.createUserMovie({
+          userMovie
+        });
+
+        res.status(201).json({
+          data: createdUserMovieId,
+          message: 'user movie created'
+        });
+      } catch (err) {
+        next(err);
+      }
+    }
+  );
+
+  router.delete(
+    '/:userMovieId',
+    validationHandler({ userMovieId: movieIdSchema }, 'params'),
+    async (req, res, next) => {
+      const { userMovieId } = req.params;
+
+      try {
+        const deleteUserMovieId = await userMoviesService.deleteUserMovie({
+          userMovieId
+        });
+
+        res.status(200).json({
+          data: deleteUserMovieId,
+          message: ' user movie deleted'
+        })
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
 };
+
+module.exports = userMoviesApi;
