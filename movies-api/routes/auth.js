@@ -10,6 +10,9 @@ const { createUserSchema } = require('../utils/schemas/users');
 
 const { config } = require('../config');
 
+const THIRTY_DAYS_IN_SEC = 2592000;
+const TWO_HOURS_IN_SEC = 7200;
+
 //Basic strategy
 require('../utils/auth/strategies/basic');
 
@@ -23,7 +26,7 @@ const authApi = app => {
 
   //Ruta de sign in
   router.post('/sign-in', async (req, res, next) => {
-    const { apiKeyToken } = req.body; // Verificar que en el cuerpo venga un apikeytoken
+    const { apiKeyToken, rememberMe } = req.body; // Verificar que en el cuerpo venga un apikeytoken y un rememberMe que sera una flag
 
     // Verificar si el token existe
     if (!apiKeyToken) {
@@ -68,6 +71,13 @@ const authApi = app => {
           // Hacemos un jwt con el payload y el secret con el que se quiere firmar y que expire en 15min
           const token = jwt.sign(payload, config.authJwtSecret, {
             expiresIn: '10m'
+          });
+
+          // Si el atributo rememberme es true la expiracion sera de 30 dias de lo contrario sera de 2 horas
+          res.cookie("token", token, {
+            httpOnly: !config.dev,
+            secure: !config.dev,
+            maxAge: rememberMe ? THIRTY_DAYS_IN_SEC * 1000 : TWO_HOURS_IN_SEC * 1000
           });
 
           // Si todo sale bien mandamos el json con el token.id y emal
