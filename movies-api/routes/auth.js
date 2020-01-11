@@ -3,18 +3,23 @@ const passport = require('passport');
 const boom = require('@hapi/boom');
 const jwt = require('jsonwebtoken');
 const ApiKeyService = require('../services/apiKeys');
+const UsersService = require('../services/users');
+const validationHandler = require('../utils/middleware/validationHandler');
+
+const { createUserSchema } = require('../utils/schemas/users');
 
 const { config } = require('../config');
 
 //Basic strategy
 require('../utils/auth/strategies/basic');
 
-// Recibe una app que es una aplicacion de express
+// Recibe una app que es una aplicacion de express con las rutas autenticacion
 const authApi = app => {
   const router = express.Router();
   app.use('/api/auth', router); // Ruta de autenticacion
 
-  const apiKeyService = new ApiKeyService(); // Instanciamos los apikeyservices
+  const apiKeyService = new ApiKeyService(); // Instanciamos los apikeyservices para sign in
+  const usersService = new UsersService(); // Instanciamos los usuarios para utilizar el metodo de crear user
 
   //Ruta de sign in
   router.post('/sign-in', async (req, res, next) => {
@@ -73,6 +78,20 @@ const authApi = app => {
       }
     })(req, res, next); // Debido a que es un custom callback debemos asegurarnos que el autenticate funcione sin problemas
   });
+  // ruta de sign up
+  router.post('/sign-up', validationHandler(createUserSchema), async (req,res,next) => {
+    const { body: user } = req;
+    try {
+      const createUserId = await usersService.createUser({ user });
+
+      res.status(201).json({
+        data: createUserId,
+        message: 'user created'
+      });
+    } catch (error) {
+      next(error);
+    }
+  })
 };
 
 module.exports = authApi;
