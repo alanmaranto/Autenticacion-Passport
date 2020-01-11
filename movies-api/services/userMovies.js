@@ -14,15 +14,15 @@ class UserMoviesService {
     }
 
     async createUserMovie({ userMovie }) {
-        const createUserMovieId = await this.mongoDB.create(this.collection, userMovie);
+        const createdUserMovieId = await this.mongoDB.create(this.collection, userMovie);
 
-        return createUserMovieId;
+        return createdUserMovieId;
     }
 
     async deleteUserMovie ({ userMovieId }) {
-        const deleteUserMovieId = await this.mongoDB.delete(this.collection, userMovieId);
+        const deletedUserMovieId = await this.mongoDB.delete(this.collection, userMovieId);
 
-        return deleteUserMovieId
+        return deletedUserMovieId
     }
 }
 

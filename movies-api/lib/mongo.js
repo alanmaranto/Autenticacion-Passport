@@ -9,8 +9,10 @@ const MONGO_URI = `mongodb+srv://${USER}:${PASSWORD}@${config.dbHost}:${config.d
 
 class MongoLib {
   constructor() {
-    this.client = new MongoClient(MONGO_URI, { useNewUrlParser: true,
-    useUnifiedTopology: true });
+    this.client = new MongoClient(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
     this.dbName = DB_NAME;
   }
 
@@ -49,7 +51,7 @@ class MongoLib {
       .then(db => {
         return db.collection(collection).insertOne(data);
       })
-      .then(result => result.insertId);
+      .then(result => result.insertedId);
   }
 
   update(collection, id, data) {
