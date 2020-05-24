@@ -6,7 +6,10 @@ const ApiKeyService = require('../services/apiKeys');
 const UsersService = require('../services/users');
 const validationHandler = require('../utils/middleware/validationHandler');
 
-const { createUserSchema } = require('../utils/schemas/users');
+const {
+  createUserSchema,
+  createProviderUserSchema
+} = require('../utils/schemas/users');
 
 const { config } = require('../config');
 
@@ -74,10 +77,12 @@ const authApi = app => {
           });
 
           // Si el atributo rememberme es true la expiracion sera de 30 dias de lo contrario sera de 2 horas
-          res.cookie("token", token, {
+          res.cookie('token', token, {
             httpOnly: !config.dev,
             secure: !config.dev,
-            maxAge: rememberMe ? THIRTY_DAYS_IN_SEC * 1000 : TWO_HOURS_IN_SEC * 1000
+            maxAge: rememberMe
+              ? THIRTY_DAYS_IN_SEC * 1000
+              : TWO_HOURS_IN_SEC * 1000
           });
 
           // Si todo sale bien mandamos el json con el token.id y emal
@@ -89,19 +94,63 @@ const authApi = app => {
     })(req, res, next); // Debido a que es un custom callback debemos asegurarnos que el autenticate funcione sin problemas
   });
   // ruta de sign up
-  router.post('/sign-up', validationHandler(createUserSchema), async (req,res,next) => {
-    const { body: user } = req;
-    try {
-      const createUserId = await usersService.createUser({ user });
+  router.post(
+    '/sign-up',
+    validationHandler(createUserSchema),
+    async (req, res, next) => {
+      const { body: user } = req;
+      try {
+        const createUserId = await usersService.createUser({ user });
 
-      res.status(201).json({
-        data: createUserId,
-        message: 'user created'
-      });
-    } catch (error) {
-      next(error);
+        res.status(201).json({
+          data: createUserId,
+          message: 'user created'
+        });
+      } catch (error) {
+        next(error);
+      }
     }
-  })
+  );
+
+  router.post(
+    '/sign-provider',
+    validationHandler(createProviderUserSchema),
+    async function(req, res, next) {
+      const { body } = req;
+
+      const { apiKeyToken, ...user } = body;
+
+      if (!apiKeyToken) {
+        next(boom.unauthorized('apiKeyToken is required'));
+      }
+
+      try {
+        const queriedUser = await usersService.getOrCreateUser({ user });
+        const apiKey = await apiKeyService.getApiKey({ token: apiKeyToken });
+
+        if (!apiKey) {
+          next(boom.unauthorized());
+        }
+
+        const { _id: id, name, email } = queriedUser;
+
+        const payload = {
+          sub: id,
+          name,
+          email,
+          scopes: apiKey.scopes
+        };
+
+        const token = jwt.sign(payload, config.authJwtSecret, {
+          expiresIn: '15m'
+        });
+
+        return res.status(200).json({ token, user: { id, name, email } });
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
 };
 
 module.exports = authApi;
