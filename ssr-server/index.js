@@ -18,14 +18,17 @@ require("./utils/auth/strategies/basic");
 // OAuth Strategy
 require("./utils/auth/strategies/oauth");
 
-app.post("/auth/sign-in", async function(req, res, next) {
-  passport.authenticate("basic", function(error, data) {
+// Google strategy
+require("./utils/auth/strategies/google");
+
+app.post("/auth/sign-in", async function (req, res, next) {
+  passport.authenticate("basic", function (error, data) {
     try {
       if (error || !data) {
         next(boom.unauthorized());
       }
 
-      req.login(data, { session: false }, async function(error) {
+      req.login(data, { session: false }, async function (error) {
         if (error) {
           next(error);
         }
@@ -34,7 +37,7 @@ app.post("/auth/sign-in", async function(req, res, next) {
 
         res.cookie("token", token, {
           httpOnly: !config.dev,
-          secure: !config.dev
+          secure: !config.dev,
         });
 
         res.status(200).json(user);
@@ -45,14 +48,14 @@ app.post("/auth/sign-in", async function(req, res, next) {
   })(req, res, next);
 });
 
-app.post("/auth/sign-up", async function(req, res, next) {
+app.post("/auth/sign-up", async function (req, res, next) {
   const { body: user } = req;
 
   try {
     await axios({
       url: `${config.apiUrl}/api/auth/sign-up`,
       method: "post",
-      data: user
+      data: user,
     });
 
     res.status(201).json({ message: "user created" });
@@ -61,9 +64,9 @@ app.post("/auth/sign-up", async function(req, res, next) {
   }
 });
 
-app.get("/movies", async function(req, res, next) {});
+app.get("/movies", async function (req, res, next) {});
 
-app.post("/user-movies", async function(req, res, next) {
+app.post("/user-movies", async function (req, res, next) {
   try {
     const { body: userMovie } = req;
     const { token } = req.cookies;
@@ -72,7 +75,7 @@ app.post("/user-movies", async function(req, res, next) {
       url: `${config.apiUrl}/api/user-movies`,
       headers: { Authorization: `Bearer ${token}` },
       method: "post",
-      data: userMovie
+      data: userMovie,
     });
 
     if (status !== 201) {
@@ -85,7 +88,7 @@ app.post("/user-movies", async function(req, res, next) {
   }
 });
 
-app.delete("/user-movies/:userMovieId", async function(req, res, next) {
+app.delete("/user-movies/:userMovieId", async function (req, res, next) {
   try {
     const { userMovieId } = req.params;
     const { token } = req.cookies;
@@ -93,7 +96,7 @@ app.delete("/user-movies/:userMovieId", async function(req, res, next) {
     const { data, status } = await axios({
       url: `${config.apiUrl}/api/user-movies/${userMovieId}`,
       headers: { Authorization: `Bearer ${token}` },
-      method: "delete"
+      method: "delete",
     });
 
     if (status !== 200) {
@@ -110,7 +113,7 @@ app.delete("/user-movies/:userMovieId", async function(req, res, next) {
 app.get(
   "/auth/google-oauth",
   passport.authenticate("google-oauth", {
-    scope: ["email", "profile", "openid"]
+    scope: ["email", "profile", "openid"],
   })
 );
 
@@ -118,7 +121,7 @@ app.get(
 app.get(
   "/auth/google-oauth/callback",
   passport.authenticate("google-oauth", {
-    session: false
+    session: false,
   }),
   (req, res, next) => {
     if (!req.user) {
@@ -129,13 +132,42 @@ app.get(
 
     res.cookie("token", token, {
       httpOnly: !config.dev,
-      secure: !config.dev
+      secure: !config.dev,
     });
 
     res.status(200).json(user);
   }
 );
 
-app.listen(config.port, function() {
+// with google openid
+app.get(
+  "/auth/google",
+  passport.authenticate("google", {
+    scope: ["email", "profile", "openid"],
+  })
+);
+
+// Receive the user's token and user's data from req.user
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { session: false }),
+  function (req, res, next) {
+    if (!req.user) {
+      next(boom.unauthorized());
+    }
+    const { token, ...user } = req.user;
+
+    // Create the cookie with the token
+    res.cookie("token", token, {
+      httpOnly: !config.dev,
+      secure: !config.dev,
+    });
+
+    // Answering with user's data
+    res.status(200).json(user);
+  }
+);
+
+app.listen(config.port, function () {
   console.log(`Listening http://localhost:${config.port}`);
 });
