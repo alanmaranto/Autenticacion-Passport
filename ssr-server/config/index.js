@@ -12,6 +12,8 @@ const config = {
   sessionSecret: process.env.SESSION_SECRET,
   linkedinKey: process.env.LINKEDIN_KEY,
   linkedinSecret: process.env.LINKEDIN_SECRET,
+  facebookClientId: process.env.FACEBOOK_CLIENT_ID,
+  facebookClientSecret: process.env.FACEBOOK_CLIENT_SECRET,
 };
 
 module.exports = { config: config };

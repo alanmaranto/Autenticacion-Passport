@@ -28,6 +28,9 @@ require("./utils/auth/strategies/google");
 // Twitter strategy
 require("./utils/auth/strategies/twitter");
 
+// Facebook strategy
+require("./utils/auth/strategies/facebook");
+
 app.post("/auth/sign-in", async function (req, res, next) {
   passport.authenticate("basic", function (error, data) {
     try {
@@ -200,6 +203,34 @@ app.get("/auth/linkedin", passport.authenticate("linkedin"));
 app.get(
   "/auth/linkedin/callback",
   passport.authenticate("linkedin", {
+    session: false,
+  }),
+  function (req, res, next) {
+    if (!req.user) {
+      next(boom.unauthorized());
+    }
+
+    const { token, ...user } = req.user;
+
+    res.cookie("token", token, {
+      httpOnly: !config.dev,
+      secure: !config.dev,
+    });
+
+    res.status(200).json(user);
+  }
+);
+
+app.get(
+  "/auth/facebook",
+  passport.authenticate("facebook", {
+    scope: ["email"],
+  })
+);
+
+app.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", {
     session: false,
   }),
   function (req, res, next) {
