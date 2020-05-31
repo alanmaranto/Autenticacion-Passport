@@ -1,4 +1,5 @@
 const express = require("express");
+const helmet = require('helmet');
 const passport = require("passport");
 const boom = require("@hapi/boom");
 const cookieParser = require("cookie-parser");
@@ -15,6 +16,7 @@ app.use(cookieParser());
 app.use(session({ secret: config.sessionSecret }));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(helmet());
 
 //  Basic strategy
 require("./utils/auth/strategies/basic");
