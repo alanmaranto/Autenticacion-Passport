@@ -2,7 +2,6 @@ const passport = require("passport");
 const axios = require("axios");
 const boom = require("@hapi/boom");
 
-const { get } = require("lodash");
 const { Strategy: TwitterStrategy } = require("passport-twitter");
 
 const { config } = require("../../../config");
@@ -21,11 +20,7 @@ passport.use(
         method: "POST",
         data: {
           name: profile.displayName,
-          email: get(
-            profile,
-            "emails.0.value",
-            `${profile.username}@twitter.com`
-          ),
+          email: profile.emails[0].value || `${profile.username}@twitter.com`,
           password: profile.id,
           apiKeyToken: config.apiKeyToken,
         },
