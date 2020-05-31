@@ -10,6 +10,8 @@ const config = {
   twitterConsumerKey: process.env.TWITTER_CONSUMER_KEY,
   twitterConsumerSecret: process.env.TWITTER_CONSUMER_SECRET,
   sessionSecret: process.env.SESSION_SECRET,
+  linkedinKey: process.env.LINKEDIN_KEY,
+  linkedinSecret: process.env.LINKEDIN_SECRET,
 };
 
 module.exports = { config: config };

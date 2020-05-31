@@ -195,6 +195,29 @@ app.get(
   }
 );
 
+app.get("/auth/linkedin", passport.authenticate("linkedin"));
+
+app.get(
+  "/auth/linkedin/callback",
+  passport.authenticate("linkedin", {
+    session: false,
+  }),
+  function (req, res, next) {
+    if (!req.user) {
+      next(boom.unauthorized());
+    }
+
+    const { token, ...user } = req.user;
+
+    res.cookie("token", token, {
+      httpOnly: !config.dev,
+      secure: !config.dev,
+    });
+
+    res.status(200).json(user);
+  }
+);
+
 app.listen(config.port, function () {
   console.log(`Listening http://localhost:${config.port}`);
 });
