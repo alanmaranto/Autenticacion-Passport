@@ -12,10 +12,10 @@
   "dependencies": {
     "@hapi/boom": "^9.0.0",
     "axios": "^0.19.1",
-    "cookie-parser": "^1.4.4",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "express-session": "^1.17.0",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
     "helmet": "^3.22.0",
     "passport": "^0.4.1",
     "passport-facebook": "^3.0.0",
