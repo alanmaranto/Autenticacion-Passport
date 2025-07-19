@@ -15,7 +15,7 @@
     "cookie-parser": "^1.4.4",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "express-session": "^1.17.0",
+    "express-session": "^1.18.2",
     "helmet": "^3.22.0",
     "passport": "^0.4.1",
     "passport-facebook": "^3.0.0",
